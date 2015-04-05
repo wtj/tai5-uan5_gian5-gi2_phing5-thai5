@@ -120,3 +120,8 @@ SOCIALACCOUNT_PROVIDERS = \
 	}
    
 SITE_ID = 1
+AUTH_USER_MODEL = '臺灣言語平臺.使用者表'
+
+# 使用者上傳檔案
+MEDIA_ROOT = os.path.join(BASE_DIR, "資料庫影音檔案")
+MEDIA_URL = '/影音檔案/'
