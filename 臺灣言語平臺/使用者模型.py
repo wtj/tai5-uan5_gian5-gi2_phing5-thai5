@@ -6,6 +6,35 @@ from django.db import models
 from 臺灣言語資料庫.資料模型 import 來源表
 from 臺灣言語平臺.項目模型 import 平臺項目表
 from 臺灣言語資料庫.資料模型 import 資料類型表
+from allauth.account.adapter import DefaultAccountAdapter
+from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
+
+class	使用者接口(DefaultAccountAdapter):
+# allauth.account.adapter.DefaultAccountAdapter:
+	def new_user(self, request):
+# 		 Instantiates a new, empty User.
+		pass
+	def save_user(self, request, user, form):
+# 		Populates and saves the User instance using information provided in the signup form.
+		pass
+	def confirm_email(self, request, email_address):
+# 		Marks the email address as confirmed and saves to the db.
+		pass
+	def generate_unique_username(self,txts, regex=None):
+# 		Returns a unique username from the combination of strings present in txts iterable. A regex pattern can be passed to the method to make sure the generated username matches it.
+		pass
+class 社接口(DefaultSocialAccountAdapter):
+# 	allauth.socialaccount.adapter.DefaultSocialAccountAdapter:
+	def new_user(self, request, sociallogin):
+# 		Instantiates a new, empty User.
+		pass
+	def save_user(self, request, sociallogin, form=None):
+# 		 Populates and saves the User instance (and related social login data). The signup form is not available in case of auto signup.
+		pass
+	def populate_user(self, request, sociallogin, data):
+# 		Hook that can be used to further populate the user instance (sociallogin.account.user). Here, data is a dictionary of common user properties (first_name, last_name, email, username, name) that the provider already extracted for you.
+		pass
+		pass
 
 class MyMgr(BaseUserManager):
 	def create_user(self, email, password=None,**other):
