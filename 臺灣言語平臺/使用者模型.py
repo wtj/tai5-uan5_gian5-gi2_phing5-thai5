@@ -1,12 +1,43 @@
 # -*- coding: utf-8 -*-
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.db import models
+
+
 from 臺灣言語資料庫.資料模型 import 來源表
 from 臺灣言語平臺.項目模型 import 平臺項目表
 from 臺灣言語資料庫.資料模型 import 資料類型表
 
-class 使用者表(models.Model):
-	來源 = models.OneToOneField(來源表, related_name='使用者', primary_key=True, null=False)
-	email = models.EmailField(unique=True, null=False)
+class MyMgr(BaseUserManager):
+	def create_user(self, email, password=None,**other):
+		"""
+		Creates and saves a User with the given email, date of
+		birth and password.
+		"""
+		if not email:
+			raise ValueError('Users must have an email address')
+		
+		user = self.model.加使用者(
+			email=self.normalize_email(email),
+			來源內容={'名':'3'},
+			)
+		
+		user.set_password(password)
+		user.save(using=self._db)
+		return user
+	def create_superuser(self, email, password,**other):
+		"""
+		Creates and saves a superuser with the given email, date of
+		birth and password.
+		"""
+		user = self.create_user(email,
+		    password=password,
+		)
+		user.is_admin = True
+		user.save(using=self._db)
+		return user
+class 使用者表(AbstractBaseUser):
+	來源 = models.OneToOneField(來源表, related_name='a', primary_key=True, null=False)
+	email = models.EmailField(unique=True)#null=False
 	密碼 = models.CharField(max_length=16, blank=True)
 # 	服務 = models.CharField(max_length=50)  # ??
 # 	編號 = models.IntegerField()  # ??
@@ -14,6 +45,8 @@ class 使用者表(models.Model):
 	REQUIRED_FIELDS = ()  # for auth
 	USERNAME_FIELD = 'email'  # for auth
 # 	階級 = models.IntegerField() 用函式算好矣
+	objects = MyMgr()
+	is_admin = models.BooleanField(default=False)
 	def 編號(self):
 		return self.來源.編號()
 	@classmethod
@@ -25,6 +58,26 @@ class 使用者表(models.Model):
 		if 使用者物件.is_authenticated():
 			return 使用者物件.編號()
 		return None
+	
+	def get_full_name(self):
+		# The user is identified by their email address
+		return self.email
+	
+	def get_short_name(self):
+		# The user is identified by their email address
+		return self.email
+	
+	def __str__(self):              # __unicode__ on Python 2
+		return self.email
+	@property
+	def is_staff(self):
+		return True
+
+	def has_perm(self, perm, obj=None):
+		return self.is_admin
+
+	def has_module_perms(self, app_label):
+		return self.is_admin
 
 class 評分狀況表(models.Model):
 	使用者 = models.ForeignKey(來源表, related_name='+')

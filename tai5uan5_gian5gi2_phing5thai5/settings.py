@@ -113,11 +113,16 @@ SOCIALACCOUNT_PROVIDERS = \
 		{'SCOPE': ['email', ],
 		'AUTH_PARAMS': {'auth_type': 'reauthenticate'},
 		'METHOD': 'oauth2',
-		'LOCALE_FUNC': 'path.to.callable',
+# 		'LOCALE_FUNC': 'path.to.callable',
 		'VERIFIED_EMAIL': False,
 		'VERSION': 'v2.2',
 		}
 	}
+ACCOUNT_USER_MODEL_USERNAME_FIELD = None
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+
    
 SITE_ID = 1
 AUTH_USER_MODEL = '臺灣言語平臺.使用者表'
