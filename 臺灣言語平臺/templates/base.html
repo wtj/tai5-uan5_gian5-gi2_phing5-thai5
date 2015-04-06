@@ -25,6 +25,7 @@
     <div>
       <strong>Menu:</strong>
       <ul>
+	<li><a href="{% url 'admin' %}">admin</a></li>
 	{% if user.is_authenticated %}
 	<li><a href="{% url 'account_email' %}">Change E-mail</a></li>
 	<li><a href="{% url 'account_logout' %}">Sign Out</a></li>

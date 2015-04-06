@@ -8,21 +8,51 @@ from 臺灣言語平臺.項目模型 import 平臺項目表
 from 臺灣言語資料庫.資料模型 import 資料類型表
 from allauth.account.adapter import DefaultAccountAdapter
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
+from allauth.account.utils import user_email, user_username, user_field
+from django.template.defaultfilters import last
 
 class	使用者接口(DefaultAccountAdapter):
 # allauth.account.adapter.DefaultAccountAdapter:
-	def new_user(self, request):
-# 		 Instantiates a new, empty User.
-		pass
-	def save_user(self, request, user, form):
-# 		Populates and saves the User instance using information provided in the signup form.
-		pass
-	def confirm_email(self, request, email_address):
-# 		Marks the email address as confirmed and saves to the db.
-		pass
-	def generate_unique_username(self,txts, regex=None):
-# 		Returns a unique username from the combination of strings present in txts iterable. A regex pattern can be passed to the method to make sure the generated username matches it.
-		pass
+# 	def new_user(self, request):
+# # 		 Instantiates a new, empty User.
+# 		pass
+	def save_user(self, request, user, form, commit=True):
+		"""
+		Saves a new `User` instance using information provided in the
+		signup form.
+		"""
+# 		from .utils import user_username, user_email, user_field
+		
+		data = form.cleaned_data
+		first_name = data.get('first_name')
+		last_name = data.get('last_name')
+		email = data.get('email')
+		username = data.get('username')
+		user_email(user, email)
+		if len(username) != 0:
+			來源名 = username
+		elif len(last_name + first_name) != 0:
+			來源名 = last_name + first_name
+		else:
+			來源名 = email
+		user_field(user.來源, '名', 來源名)
+
+		if 'password1' in data:
+			user.set_password(data["password1"])
+		else:
+			user.set_unusable_password()
+		self.populate_username(request, user)
+		if commit:
+			# Ability not to commit makes it easier to derive from
+			# this adapter by adding
+			user.save()
+		return user
+# 	def confirm_email(self, request, email_address):
+# # 		Marks the email address as confirmed and saves to the db.
+# 		pass
+# 	def generate_unique_username(self,txts, regex=None):
+# # 		Returns a unique username from the combination of strings present in txts iterable. A regex pattern can be passed to the method to make sure the generated username matches it.
+# 		pass
 class 社接口(DefaultSocialAccountAdapter):
 # 	allauth.socialaccount.adapter.DefaultSocialAccountAdapter:
 	def new_user(self, request, sociallogin):
@@ -34,10 +64,9 @@ class 社接口(DefaultSocialAccountAdapter):
 	def populate_user(self, request, sociallogin, data):
 # 		Hook that can be used to further populate the user instance (sociallogin.account.user). Here, data is a dictionary of common user properties (first_name, last_name, email, username, name) that the provider already extracted for you.
 		pass
-		pass
 
 class MyMgr(BaseUserManager):
-	def create_user(self, email, password=None,**other):
+	def create_user(self, email, password=None, **other):
 		"""
 		Creates and saves a User with the given email, date of
 		birth and password.
@@ -53,7 +82,7 @@ class MyMgr(BaseUserManager):
 		user.set_password(password)
 		user.save(using=self._db)
 		return user
-	def create_superuser(self, email, password,**other):
+	def create_superuser(self, email, password, **other):
 		"""
 		Creates and saves a superuser with the given email, date of
 		birth and password.
@@ -66,7 +95,7 @@ class MyMgr(BaseUserManager):
 		return user
 class 使用者表(AbstractBaseUser):
 	來源 = models.OneToOneField(來源表, related_name='a', primary_key=True, null=False)
-	email = models.EmailField(unique=True)#null=False
+	email = models.EmailField(unique=True)  # null=False
 	密碼 = models.CharField(max_length=16, blank=True)
 # 	服務 = models.CharField(max_length=50)  # ??
 # 	編號 = models.IntegerField()  # ??
@@ -96,7 +125,7 @@ class 使用者表(AbstractBaseUser):
 		# The user is identified by their email address
 		return self.email
 	
-	def __str__(self):              # __unicode__ on Python 2
+	def __str__(self):  # __unicode__ on Python 2
 		return self.email
 	@property
 	def is_staff(self):
