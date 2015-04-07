@@ -3,7 +3,7 @@ from django.contrib import admin
 from django.views.generic.base import TemplateView
 from django.http.response import HttpResponse
 from django.contrib.auth.views import login
-from django.contrib.auth import authenticate, get_user_model
+from django.contrib.auth import get_user_model
 from allauth.account.views import logout
 admin.autodiscover()
 User=get_user_model()
@@ -14,8 +14,8 @@ def XX(request):
 	print(a)
 	return XXX(request)
 def XXX(request):
-	return HttpResponse('{} X {} X {} X {}'.format(str(request.user),
-			str(request.user.pk),request.user.username,request.user.pk==None))
+	return HttpResponse('{} X '.format(str(request.user),
+			str(request.user.編號())))
 
 urlpatterns = patterns('',
 	# Examples:

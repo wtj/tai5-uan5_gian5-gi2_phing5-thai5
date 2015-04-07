@@ -1,15 +1,16 @@
 # -*- coding: utf-8 -*-
+from allauth.account.adapter import DefaultAccountAdapter
+from allauth.account.utils import user_email
+from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
+from allauth.utils import valid_email_or_none
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.db import models
+from allauth.account.adapter import get_adapter as get_account_adapter
 
 
 from 臺灣言語資料庫.資料模型 import 來源表
 from 臺灣言語平臺.項目模型 import 平臺項目表
 from 臺灣言語資料庫.資料模型 import 資料類型表
-from allauth.account.adapter import DefaultAccountAdapter
-from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
-from allauth.account.utils import user_email, user_username, user_field
-from django.template.defaultfilters import last
 
 class	使用者接口(DefaultAccountAdapter):
 # allauth.account.adapter.DefaultAccountAdapter:
@@ -35,7 +36,10 @@ class	使用者接口(DefaultAccountAdapter):
 			來源名 = last_name + first_name
 		else:
 			來源名 = email
-		user_field(user.來源, '名', 來源名)
+		try:
+			user.來源
+		except:
+			user.來源 = 來源表. 加來源({ '名':來源名})
 
 		if 'password1' in data:
 			user.set_password(data["password1"])
@@ -47,6 +51,18 @@ class	使用者接口(DefaultAccountAdapter):
 			# this adapter by adding
 			user.save()
 		return user
+	def populate_username(self, request, user):
+		"""
+		Fills in a valid username, if required and missing.  If the
+		username is already present it is assumed to be valid
+		(unique).
+		"""
+		email = user_email(user)
+		try:
+			user.來源
+		except:
+			user.來源 = 來源表. 加來源({ '名':email})
+# 			user_field(user.來源, 來源)
 # 	def confirm_email(self, request, email_address):
 # # 		Marks the email address as confirmed and saves to the db.
 # 		pass
@@ -55,15 +71,61 @@ class	使用者接口(DefaultAccountAdapter):
 # 		pass
 class 社接口(DefaultSocialAccountAdapter):
 # 	allauth.socialaccount.adapter.DefaultSocialAccountAdapter:
-	def new_user(self, request, sociallogin):
-# 		Instantiates a new, empty User.
-		pass
+# 	def new_user(self, request, sociallogin):
+# # 		Instantiates a new, empty User.
+# 		pass
 	def save_user(self, request, sociallogin, form=None):
-# 		 Populates and saves the User instance (and related social login data). The signup form is not available in case of auto signup.
-		pass
+		"""
+		Saves a newly signed up social login. In case of auto-signup,
+		the signup form is not available.
+		"""
+		u = sociallogin.user
+		u.set_unusable_password()
+		if form:
+			get_account_adapter().save_user(request, u, form)
+		else:
+			get_account_adapter().populate_username(request, u)
+		print(sociallogin)
+		sociallogin.save(request)
+		return u
 	def populate_user(self, request, sociallogin, data):
 # 		Hook that can be used to further populate the user instance (sociallogin.account.user). Here, data is a dictionary of common user properties (first_name, last_name, email, username, name) that the provider already extracted for you.
-		pass
+		"""
+		Hook that can be used to further populate the user instance.
+		
+		For convenience, we populate several common fields.
+		
+		Note that the user instance being populated represents a
+		suggested User instance that represents the social user that is
+		in the process of being logged in.
+		
+		The User instance need not be completely valid and conflict
+		free. For example, verifying whether or not the username
+		already exists, is not a responsibility.
+  	  """
+		user = sociallogin.user
+
+		email = data.get('email')
+		user_email(user, valid_email_or_none(email) or '')
+
+		name = data.get('name')
+		username = data.get('username')
+		first_name = data.get('first_name')
+		last_name = data.get('last_name')
+		
+		if name :
+			來源名 = name
+		elif username:
+			來源名 = username
+		elif last_name and first_name:
+			來源名 = last_name + first_name
+		else:
+			來源名 = email
+		try:
+			user.來源
+		except:
+			user.來源 = 來源表. 加來源({ '名':來源名})
+		return user
 
 class MyMgr(BaseUserManager):
 	def create_user(self, email, password=None, **other):
@@ -93,6 +155,7 @@ class MyMgr(BaseUserManager):
 		user.is_admin = True
 		user.save(using=self._db)
 		return user
+
 class 使用者表(AbstractBaseUser):
 	來源 = models.OneToOneField(來源表, related_name='a', primary_key=True, null=False)
 	email = models.EmailField(unique=True)  # null=False
