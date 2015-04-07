@@ -110,12 +110,12 @@ AUTHENTICATION_BACKENDS = (
 
 SOCIALACCOUNT_PROVIDERS = \
 	{'facebook':
-		{'SCOPE': ['email', ],
+		{'SCOPE': ['email',],
 		'AUTH_PARAMS': {'auth_type': 'reauthenticate'},
-		'METHOD': 'oauth2',
+		'METHOD': 'js_sdk',
 		'LOCALE_FUNC': lambda request: 'zh_TW',
 		'VERIFIED_EMAIL': False,
-		'VERSION': 'v2.2',
+		'VERSION': 'v2.3',
 		}
 	}
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
